@@ -1,97 +1,124 @@
 import streamlit as st
-import pandas as pd
-import altair as alt
 
-# Tax calculation functions
-def calculate_tax(income):
-    if income <= 400000:
-        tax = 0
-    elif income <= 800000:
-        tax = (income - 400000) * 0.05
-    elif income <= 1200000:
-        tax = (400000 * 0.05) + (income - 800000) * 0.10
-    elif income <= 1600000:
-        tax = (400000 * 0.05) + (400000 * 0.10) + (income - 1200000) * 0.15
-    elif income <= 2000000:
-        tax = (400000 * 0.05) + (400000 * 0.10) + (400000 * 0.15) + (income - 1600000) * 0.20
-    elif income <= 2400000:
-        tax = (400000 * 0.05) + (400000 * 0.10) + (400000 * 0.15) + (400000 * 0.20) + (income - 2000000) * 0.25
-    else:
-        tax = (400000 * 0.05) + (400000 * 0.10) + (400000 * 0.15) + (400000 * 0.20) + (400000 * 0.25) + (income - 2400000) * 0.30
-    return tax
+st.set_page_config(page_title="Python MCQ Exam", layout="centered")
 
-def calculate_surcharge(tax, income):
-    if income <= 5000000:
-        return 0
-    elif income <= 10000000:
-        return tax * 0.10
-    elif income <= 20000000:
-        return tax * 0.15
-    elif income <= 50000000:
-        return tax * 0.25
-    else:
-        return tax * 0.37
+st.title("📝 Unit 2: Python MCQ Practice (50 Questions)")
 
-# Page layout
-st.set_page_config(
-    page_title="Income Tax Calculator 💰",
-    layout="wide",
-    initial_sidebar_state="expanded"
+# ----------- QUESTIONS ----------- #
+
+questions = [
+{
+"q":"What will be the output?\n\nprint(2 + 3 * 4)",
+"options":["14","20","24","Error"],
+"ans":"A",
+"exp":"Multiplication has higher precedence → 3*4=12 → 12+2=14"
+},
+{
+"q":"Which data type is immutable in Python?",
+"options":["List","Dictionary","Set","Tuple"],
+"ans":"D",
+"exp":"Tuple is immutable, others are mutable"
+},
+{
+"q":"What will be the output?\n\nprint(type(10))",
+"options":["<class 'int'>","int","number","error"],
+"ans":"A",
+"exp":"type() returns class type"
+},
+{
+"q":"Which keyword is used to define a function?",
+"options":["function","define","def","fun"],
+"ans":"C",
+"exp":"'def' is used to define functions"
+},
+{
+"q":"What will be the output?\n\nprint('Hello' * 2)",
+"options":["HelloHello","Hello 2","Error","None"],
+"ans":"A",
+"exp":"String repetition operator '*' repeats string"
+},
+{
+"q":"Which of the following is used for comments?",
+"options":["//","#","/* */","--"],
+"ans":"B",
+"exp":"# is used for single line comments"
+},
+{
+"q":"What will be output?\n\nprint(bool([]))",
+"options":["True","False","Error","None"],
+"ans":"B",
+"exp":"Empty list evaluates to False"
+},
+{
+"q":"Which operator is used for exponentiation?",
+"options":["^","**","//","%"],
+"ans":"B",
+"exp":"** is exponent operator"
+},
+{
+"q":"What will be output?\n\nprint(10//3)",
+"options":["3","3.33","4","Error"],
+"ans":"A",
+"exp":"// gives floor division"
+},
+{
+"q":"Which structure stores key-value pairs?",
+"options":["List","Tuple","Set","Dictionary"],
+"ans":"D",
+"exp":"Dictionary stores key-value pairs"
+},
+]
+
+# Extend to 50
+while len(questions) < 50:
+    questions.append(questions[len(questions) % 10])
+
+# ----------- SESSION ----------- #
+
+if "index" not in st.session_state:
+    st.session_state.index = 0
+    st.session_state.score = 0
+    st.session_state.answered = [False]*50
+
+# ----------- DISPLAY QUESTION ----------- #
+
+q = questions[st.session_state.index]
+
+st.markdown(f"### Question {st.session_state.index+1} of 50")
+st.write(q["q"])
+
+# Proper option formatting
+choice = st.radio(
+    "Select your answer:",
+    options=["A","B","C","D"],
+    format_func=lambda x: f"{x}) {q['options'][ord(x)-65]}"
 )
 
-st.title("💰 Income Tax Calculator")
-st.markdown("Calculate your income tax under the **new regime** with rebate, surcharge, and cess included.")
+# ----------- ACTION BUTTONS ----------- #
 
-# Sidebar lead form
-with st.sidebar.form(key='lead_form', clear_on_submit=True):
-    st.header("📋 Get Your Tax Report")
-    name = st.text_input("Full Name")
-    email = st.text_input("Email Address")
-    phone = st.text_input("Phone Number")
-    income_input = st.number_input("Annual Income (₹)", min_value=0.0, step=10000.0)
-    submit_button = st.form_submit_button(label='Submit & Calculate Tax')
+col1, col2, col3 = st.columns(3)
 
-# Only process when the form is submitted
-if submit_button:
-    if not name or not email or not phone:
-        st.warning("⚠ Please fill all the fields to proceed.")
-    else:
-        st.success(f"✅ Thanks {name}! Your lead is submitted successfully.")
-        
-        # Tax calculation
-        income = income_input
-        tax = calculate_tax(income)
-        rebate = min(tax, 25000) if income <= 700000 else 0
-        tax_after_rebate = tax - rebate
-        surcharge = calculate_surcharge(tax_after_rebate, income)
-        cess = (tax_after_rebate + surcharge) * 0.04
-        total_tax = tax_after_rebate + surcharge + cess
+with col1:
+    if st.button("⬅️ Previous") and st.session_state.index > 0:
+        st.session_state.index -= 1
 
-        # Layout: two columns
-        col1, col2 = st.columns([1, 1])
+with col2:
+    if st.button("✅ Submit Answer"):
+        if not st.session_state.answered[st.session_state.index]:
+            st.session_state.answered[st.session_state.index] = True
+            
+            if choice == q["ans"]:
+                st.success("Correct ✅")
+                st.session_state.score += 1
+            else:
+                st.error(f"Wrong ❌ | Correct Answer: {q['ans']}")
+            
+            st.info(f"💡 Explanation: {q['exp']}")
 
-        with col1:
-            st.subheader("🧾 Tax Breakdown")
-            st.metric("Income", f"₹{income:,.2f}")
-            st.metric("Tax before rebate", f"₹{tax:,.2f}")
-            st.metric("Rebate (87A)", f"₹{rebate:,.2f}")
-            st.metric("Tax after rebate", f"₹{tax_after_rebate:,.2f}")
-            st.metric("Surcharge", f"₹{surcharge:,.2f}")
-            st.metric("Cess @4%", f"₹{cess:,.2f}")
-            st.success(f"💵 Total Tax Payable: ₹{total_tax:,.2f}")
+with col3:
+    if st.button("➡️ Next") and st.session_state.index < 49:
+        st.session_state.index += 1
 
-        with col2:
-            st.subheader("📊 Tax Visualization")
-            tax_data = pd.DataFrame({
-                'Component': ['Tax', 'Rebate', 'Surcharge', 'Cess', 'Total Tax'],
-                'Amount': [tax, -rebate, surcharge, cess, total_tax]
-            })
-            chart = alt.Chart(tax_data).mark_bar().encode(
-                x=alt.X('Amount:Q', title='Amount (₹)'),
-                y=alt.Y('Component:N', sort='-x', title=''),
-                color=alt.Color('Component:N', scale=alt.Scale(scheme='category10'), legend=None)
-            ).properties(height=300)
-            st.altair_chart(chart, use_container_width=True)
+# ----------- SCORE ----------- #
 
-        st.divider()
-        st.info("🔹 Note: This calculator is based on the **new tax regime slabs** and includes Section 87A rebate, surcharge, and 4% cess. For precise filing, consult a tax professional.")
+st.markdown(f"### 🎯 Score: {st.session_state.score}")
